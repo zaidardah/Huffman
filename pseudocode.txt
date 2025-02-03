@@ -1,0 +1,82 @@
+BEGIN
+
+  READ inputText
+  INITIALIZE freq[256] with zeros
+
+  FOR EACH character c IN inputText DO
+      freq[ASCII(c)] ← freq[ASCII(c)] + 1
+  END FOR
+
+  INITIALIZE minHeap
+
+  FOR i FROM 0 TO 255 DO
+      IF freq[i] > 0 THEN
+          CREATE node WITH:
+              node.character ← character corresponding to i
+              node.frequency ← freq[i]
+              node.left ← NULL
+              node.right ← NULL
+          INSERT node INTO minHeap
+      END IF
+  END FOR
+
+  WHILE minHeap.size > 1 DO
+      leftNode ← EXTRACT_MIN(minHeap)
+      rightNode ← EXTRACT_MIN(minHeap)
+      CREATE parentNode WITH:
+          parentNode.character ← NULL
+          parentNode.frequency ← leftNode.frequency + rightNode.frequency
+          parentNode.left ← leftNode
+          parentNode.right ← rightNode
+      INSERT parentNode INTO minHeap
+  END WHILE
+
+  root ← EXTRACT_MIN(minHeap)
+
+  FUNCTION generateCodes(node, code)
+      IF node IS NULL THEN
+          RETURN
+      END IF
+      IF node.left IS NULL AND node.right IS NULL THEN
+          codes[node.character] ← code
+      ELSE
+          CALL generateCodes(node.left, code + "0")
+          CALL generateCodes(node.right, code + "1")
+      END IF
+  END FUNCTION
+
+  CALL generateCodes(root, "")
+
+  SET encodedText ← ""
+  FOR EACH character c IN inputText DO
+      encodedText ← encodedText + codes[c]
+  END FOR
+
+  PRINT encodedText
+  PRINT LENGTH(encodedText)
+
+  READ newString
+  SET newEncodedText ← ""
+  FOR EACH character c IN newString DO
+      newEncodedText ← newEncodedText + codes[c]
+  END FOR
+  PRINT newEncodedText
+
+  READ binaryString
+  SET decodedText ← ""
+  SET currentNode ← root
+  FOR EACH bit IN binaryString DO
+      IF bit = '0' THEN
+          currentNode ← currentNode.left
+      ELSE IF bit = '1' THEN
+          currentNode ← currentNode.right
+      END IF
+      IF currentNode.left IS NULL AND currentNode.right IS NULL THEN
+          decodedText ← decodedText + currentNode.character
+          currentNode ← root
+      END IF
+  END FOR
+
+  PRINT decodedText
+
+END
